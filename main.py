@@ -72,4 +72,6 @@ if __name__ == '__main__':
 
     while True:
         get_Data()
-        time.sleep()
+        time_wait = 24 * 60 * 60  
+        print(f'Waiting {time_wait / 3600} Hours...')
+        time.sleep(time_wait) 
