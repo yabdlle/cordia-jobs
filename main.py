@@ -297,9 +297,9 @@ async def fetch_jobs(ctx, num_jobs: int = 5):
   else:
     await ctx.send(response)
 
-@client.command(name='getmeajob')
-async def get_me_a_job(ctx):
-    await ctx.send('Lock in lil nigga')
+  @commands.command(name='getmeajob')
+  async def get_me_a_job(self, ctx):
+      await ctx.send('Lock in')
 
 
 
