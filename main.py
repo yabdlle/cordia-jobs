@@ -93,7 +93,7 @@ def format_job_data(row):
 
 
 def get_Swe():
-  url = "https://github.com/Ouckah/Summer2025-Internships"  # Define the URL here
+  url = "https://github.com/Ouckah/Summer2025-Internships" 
   try:
     # Fetch the content from the URL
     response = requests.get(url).text
