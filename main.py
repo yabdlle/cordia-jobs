@@ -17,14 +17,12 @@ logging.basicConfig(filename='internship_data.log',
                     level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Create a bot instance with the necessary intents
 intents = discord.Intents.default()
-intents.message_content = True  # Enable the message_content intent
+intents.message_content = True 
 client = commands.Bot(command_prefix='?', intents=intents)
 url = "https://github.com/Ouckah/Summer2025-Internships"
 
-posted_jobs = set()  # A set to keep track of posted jobs
-
+posted_jobs = set() 
 
 def get_Data():
   try:
@@ -95,13 +93,13 @@ def format_job_data(row):
 
 
 def get_Swe():
-  url = "https://github.com/Ouckah/Summer2025-Internships"  # Define the URL here
+  url = "https://github.com/Ouckah/Summer2025-Internships" 
   try:
-    # Fetch the content from the URL
+   
     response = requests.get(url).text
-    # Parse the HTML content with BeautifulSoup
+ 
     soup = BeautifulSoup(response, 'lxml')
-    # Find the div containing the table
+ 
     div = soup.find('div', class_='Box-sc-g0xbh4-0 ehcSsh')
 
     if div:
@@ -122,18 +120,18 @@ def get_Swe():
             date_posted = columns[4].text.strip() if len(
                 columns) > 4 else 'N/A'
 
-            # Handle case where company is '↳'
+          
             if company == '↳':
               if current_company:
-                # Continue with the last known company name
+              
                 company = current_company
               else:
-                # Skip rows with '↳' if no valid company is available
+                
                 continue
             else:
-              current_company = company  # Update the current company
+              current_company = company  
 
-            # Check if the role contains the desired keywords
+            
             if "Software Engineering Intern" in role or "Software Developer Intern" in role:
               row_data = {
                   'Company': company,
