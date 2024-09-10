@@ -22,7 +22,7 @@ intents.message_content = True
 client = commands.Bot(command_prefix='?', intents=intents)
 url = "https://github.com/Ouckah/Summer2025-Internships"
 
-posted_jobs = set() 
+
 
 def get_Data():
   try:
