@@ -1,15 +1,13 @@
 import discord
 import asyncio
-from discord.ext import commands, tasks
-from datetime import datetime
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 import re
 import logging
 from datetime import datetime, timedelta
-from datetime import datetime, timezone
 import pytz
+from discord.ext import commands, tasks
 
 
 # Set up logging
