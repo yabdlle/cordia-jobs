@@ -456,12 +456,11 @@ async def fetch_commands(ctx):
         "`?fullstack [num_jobs]` - Get a list of most recent Full Stack, Backend, and Front End Internships (default: 5).\n"
         "`?it [num_jobs]` - Get a list of most recent IT-related Internships (default: 5).\n"
         "`?recent` - Get a list of jobs posted in the last 48 hours.\n"
-        "`?src` - Get source of data."
-        "`?git` - Get github of code."
+        "`?src` - Get source of data.\n"  # Added newline here
+        "`?git` - Get github of code."  # Added newline here
     )
-    
-  
     await ctx.send(commands_list)
+
 
 posted_jobs = set() 
 
