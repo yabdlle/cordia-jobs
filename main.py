@@ -17,10 +17,12 @@ logging.basicConfig(filename='internship_data.log',
                     level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Create a bot instance with the necessary intents
 intents = discord.Intents.default()
-intents.message_content = True 
+intents.message_content = True  # Enable the message_content intent
 client = commands.Bot(command_prefix='?', intents=intents)
 url = "https://github.com/Ouckah/Summer2025-Internships"
+
 
 
 
@@ -93,13 +95,13 @@ def format_job_data(row):
 
 
 def get_Swe():
-  url = "https://github.com/Ouckah/Summer2025-Internships" 
+  url = "https://github.com/Ouckah/Summer2025-Internships"  # Define the URL here
   try:
-   
+    # Fetch the content from the URL
     response = requests.get(url).text
- 
+    # Parse the HTML content with BeautifulSoup
     soup = BeautifulSoup(response, 'lxml')
- 
+    # Find the div containing the table
     div = soup.find('div', class_='Box-sc-g0xbh4-0 ehcSsh')
 
     if div:
@@ -120,18 +122,18 @@ def get_Swe():
             date_posted = columns[4].text.strip() if len(
                 columns) > 4 else 'N/A'
 
-          
+            # Handle case where company is '↳'
             if company == '↳':
               if current_company:
-              
+                # Continue with the last known company name
                 company = current_company
               else:
-                
+                # Skip rows with '↳' if no valid company is available
                 continue
             else:
-              current_company = company  
+              current_company = company  # Update the current company
 
-            
+            # Check if the role contains the desired keywords
             if "Software Engineering Intern" in role or "Software Developer Intern" in role:
               row_data = {
                   'Company': company,
@@ -387,8 +389,9 @@ async def fetch_it(ctx, num_jobs: int = 5):
 async def fetch_src(ctx):
     await ctx.send('Check out the source code here: https://github.com/Ouckah/Summer2025-Internships')
     
-
-from datetime import datetime, timezone
+@client.command(name='git')
+async def fetch_git(ctx):
+    await ctx.send('Git Source is here: https://github.com/yabdlle/job-bot/blob/main/main.py')
 
 @client.command(name='recent')
 async def fetch_recent_jobs(ctx):
@@ -418,7 +421,7 @@ async def fetch_recent_jobs(ctx):
             time_difference = (now - date_posted).total_seconds()
             print(f"Time difference: {time_difference} seconds")
 
-            if time_difference <= 172800:  # 48 hours = 172800 seconds
+            if time_difference <= 172800:  
                 recent_jobs.append(row)
         except ValueError:
             print(f"Date parsing error: {date_posted_str}")
@@ -434,7 +437,7 @@ async def fetch_recent_jobs(ctx):
         return
 
     response = ""
-    for row in recent_jobs:  # Display all recent jobs
+    for row in recent_jobs:  
         response += format_job_data(row)
 
     # Handle message length constraints
@@ -449,16 +452,17 @@ async def fetch_recent_jobs(ctx):
 @client.command(name='commands')
 async def fetch_commands(ctx):
     commands_list = (
-        "**Available Commands:**\n\n"  # Added space after "Available Commands"
+        "**Available Commands:**\n\n" 
         "`?jobs [num_jobs]` - Get a list of the most recent jobs (default: 5).\n"
         "`?swe [num_jobs]` - Get a list of most recent Software Engineering Internships (default: 5).\n"
         "`?fullstack [num_jobs]` - Get a list of most recent Full Stack, Backend, and Front End Internships (default: 5).\n"
         "`?it [num_jobs]` - Get a list of most recent IT-related Internships (default: 5).\n"
         "`?recent` - Get a list of jobs posted in the last 48 hours.\n"
         "`?src` - Get source of data."
+        "`?git` - Get github of code."
     )
     
-    # Send the command list to the user
+  
     await ctx.send(commands_list)
 
 posted_jobs = set() 
@@ -467,25 +471,25 @@ chicago_tz = pytz.timezone('America/Chicago')
 
 
 async def post_new_jobs():
-    channel = client.get_channel(544354317608419339) 
+    channel = client.get_channel(544354317608419339)  
     if channel:
         df = get_Data()
         if df is not None and not df.empty:
             response = ""
             new_jobs = []
             
-           
+            # Get the current time in Chicago
             now = datetime.now(chicago_tz)
 
             for index, row in df.iterrows():
                 job_id = f"{row['Company']} - {row['Role']}"
                 if job_id not in posted_jobs:
                     try:
-                        #
+                        # Adjust the date format and timezone for comparison
                         date_posted = datetime.strptime(row['Date Posted'], '%b %d').replace(year=2024)
-                        date_posted = chicago_tz.localize(date_posted)  
+                        date_posted = chicago_tz.localize(date_posted)  # Localize to Chicago timezone
 
-                        if (now - date_posted).total_seconds() <= 86400:
+                        if (now - date_posted).total_seconds() <= 86400: 
                             minutes_since_posted = (now - date_posted).total_seconds() / 60
                             new_jobs.append(row)
                             posted_jobs.add(job_id)
@@ -517,7 +521,7 @@ async def post_new_jobs():
 async def periodic_job_posting():
     while True:
         await post_new_jobs()
-        await asyncio.sleep(60)  
+        await asyncio.sleep(60) 
 
 @client.event
 async def on_ready():
@@ -528,12 +532,12 @@ async def on_ready():
 
 
 
-
+# Get the current time in UTC
 now_utc = datetime.now(pytz.utc)
 
 # Convert UTC time to Chicago time
 now_chicago = now_utc.astimezone(chicago_tz)
 
-
+# Print the current time in Chicago
 print("Current time in Chicago:", now_chicago.strftime('%Y-%m-%d %H:%M:%S'))
 client.run('TOKEN')
