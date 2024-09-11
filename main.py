@@ -90,7 +90,7 @@ def get_Swe():
     return get_Data(job_keywords)
 
 def get_FullStack():
-    job_keywords = ['Full Stack', 'Front End', 'Back end' , 'Backend' ,'Frontend' ,'Front-end' ,'Back-end']
+    job_keywords = ['Full Stack','Full-Stack' 'Front End', 'Back end' , 'Backend' ,'Frontend' ,'Front-end' ,'Back-end']
     return get_Data(job_keywords)
 
 def get_It():
