@@ -108,7 +108,7 @@ def format_job_data(row):
             f"**Date:** {row['Date Posted']}\n\n")
 
 def get_Swe():
-    job_keywords = ['Software Engineer', 'Software Developer']
+    job_keywords = ['Software Engineer', 'Software Developer', 'Software Engineering']
     return get_Data(keywords=job_keywords)
 
 def get_FullStack():
@@ -258,8 +258,8 @@ async def fetch_commands(ctx):
         "`?random [num_jobs]` - Get a random list of internships posted (default: 5).\n"
         "`?lo [num_jobs]` - Retrieve a list of job postings for a specified location (default: 5).\n"
         "`?remote [num_jobs]` - Fetch a list of remote job opportunities (default: 5).\n"
-        "`?src` - Get the source code URL.\n"
-        "`?git` - Get the GitHub source code URL.\n"
+        "`?src` - Get the source of internship data.\n"
+        "`?git` - Get the Github code of the bot.\n"
     )
     await ctx.send(commands_list)
 
@@ -272,6 +272,10 @@ def search_company_by_index(company_name, role_keyword=None):
         'backend': 'Backend Developer',
         'it': 'IT Specialist',
         'sysadmin': 'System Administrator',
+        'ML': 'Machine Learning Engineer',
+        'AI' : 'AI Engineer',
+        'Embed' : 'Embedded Engineer'
+
     }
 
     # Replace role_keyword with the full role name using the ROLE_MAPPINGS dictionary
@@ -306,6 +310,7 @@ def search_company_by_index(company_name, role_keyword=None):
 async def search_company(ctx, company_name: str, *, role_keyword: str = None):
     result = search_company_by_index(company_name, role_keyword)
     await ctx.send(result)
+
 
 
 @client.command(name='random')
