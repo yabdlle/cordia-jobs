@@ -116,7 +116,7 @@ def get_FullStack():
     return get_Data(keywords=job_keywords)
 
 def get_It():
-    job_keywords = ['Cloud', 'DevOps', 'IT', 'Cyber', 'Risk', 'Support', 'Administrator', 'Cybersecurity', 'Analyst']
+    job_keywords = ['Cloud', 'DevOps', 'IT', 'Cyber', 'Risk', 'Support', 'Administrator', 'Cybersecurity', 'Analyst', 'Business']
     return get_Data(keywords=job_keywords)
 
 
@@ -248,14 +248,16 @@ async def fetch_recent_jobs(ctx):
 @client.command(name='commands')
 async def fetch_commands(ctx):
     commands_list = (
-        "**Available Commands:**\n\n" 
-        "`?company [company_name] [role]` - Get the x company with y role.\n"
+        "**Available Commands:**\n\n"
+        "`?company [company_name] [role]` - Get job postings for the specified company and role (if exists).\n"
         "`?recent` - Get jobs posted in the last 48 hours.\n"
         "`?jobs [num_jobs]` - Get a list of the most recent jobs (default: 5).\n"
-        "`?swe [num_jobs]` - Get a list of most recent Software Engineering Internships (default: 5).\n"
-        "`?fullstack [num_jobs]` - Get a list of most recent Full Stack, Backend, and Front End Internships (default: 5).\n"
-        "`?it [num_jobs]` - Get a list of most recent IT-related Internships (default: 5).\n"
-        "`?recent` - Get jobs posted in the last 48 hours.\n"
+        "`?swe [num_jobs]` - Get a list of the most recent Software Engineering Internships (default: 5).\n"
+        "`?fullstack [num_jobs]` - Get a list of the most recent Full Stack, Backend, and Front End Internships (default: 5).\n"
+        "`?it [num_jobs]` - Get a list of the most recent IT-related Internships (default: 5).\n"
+        "`?random [num_jobs]` - Get a random list of internships posted (default: 5).\n"
+        "`?lo [num_jobs]` - Retrieve a list of job postings for a specified location (default: 5).\n"
+        "`?remote [num_jobs]` - Fetch a list of remote job opportunities (default: 5).\n"
         "`?src` - Get the source code URL.\n"
         "`?git` - Get the GitHub source code URL.\n"
     )
@@ -307,6 +309,101 @@ async def search_company(ctx, company_name: str, *, role_keyword: str = None):
     result = search_company_by_index(company_name, role_keyword)
     await ctx.send(result)
 
+
+@client.command(name='random')
+async def random_job(ctx, num_jobs: int = 3):
+    df = get_Data([])
+    if df is None or df.empty:
+        await ctx.send("No jobs available.")
+        return
+
+
+    num_jobs = min(max(1, num_jobs), len(df))
+    
+ 
+    random_rows = df.sample(n=num_jobs)
+    response = ""
+    for _, row in random_rows.iterrows():
+        response += format_job_data(row)
+
+    await text_length(ctx, response)
+    
+@client.command(name='lo')
+async def search_location(ctx, *, args: str):
+    args_split = args.split()
+    
+    if not args_split:
+        await ctx.send("Please provide a location.")
+        return
+
+    default_num_lo = 5
+
+    try:
+        num_lo = int(args_split[-1])
+        location = ' '.join(args_split[:-1])
+    except ValueError:
+        location = ' '.join(args_split)
+        num_lo = default_num_lo
+
+    df = get_Data([])
+
+    if df is None or df.empty:
+        await ctx.send("No job data available.")
+        return
+
+    location_keyword = location.lower()
+    
+    if not all(col in df.columns for col in ['Company', 'Role', 'Location', 'Application/Link', 'Date Posted']):
+        await ctx.send("Data format is incorrect.")
+        return
+
+    all_locations = df['Location'].str.lower().unique()
+    matched_locations = [loc for loc in all_locations if location_keyword in loc]
+
+    if not matched_locations:
+        await ctx.send(f"No job postings found for the location '{location}'.")
+        return
+
+    filtered_df = df[df['Location'].str.lower().isin(matched_locations)]
+    
+    num_lo = max(1, num_lo)
+    filtered_df = filtered_df.head(num_lo)
+
+    response = ""
+    for _, row in filtered_df.iterrows():
+        response += format_job_data(row)
+    
+    await text_length(ctx, response)
+
+
+
+@client.command(name='remote')
+async def search_remote(ctx, num_jobs: int = 5):
+    df = get_Data([])
+
+    if df is None or df.empty:
+        await ctx.send("No jobs available.")
+        return
+
+    remote_jobs = df[df['Location'].str.contains('remote', case=False, na=False)]
+
+    if remote_jobs.empty:
+        await ctx.send("No remote job postings available.")
+        return
+
+    num_jobs = max(1, num_jobs)
+    remote_jobs = remote_jobs.head(num_jobs)
+
+    response = ""
+    for _, row in remote_jobs.iterrows():
+        location = row['Location']
+        # Format location
+        location = re.sub(r'(\w+),(\w+)', r'\1, \2', location)
+        location = re.sub(r'(\w+)(Remote)', r'\1 / Remote', location)
+        row['Location'] = location
+        response += format_job_data(row)
+
+    await text_length(ctx, response)
 
 
 client.run('TOKEN')
