@@ -21,16 +21,20 @@ client = commands.Bot(command_prefix='?', intents=intents)
 url = "https://github.com/Ouckah/Summer2025-Internships"
 
 
-def get_Data(keywords):
-    try: 
+def get_Data(keywords, filter_keywords=None):
+    if keywords is None:
+        keywords = []
+
+    try:
         response = requests.get(url).text
+        print(f"Fetched HTML: {response[:500]}")  # Print the first 500 characters of the HTML to debug
         soup = BeautifulSoup(response, 'lxml')
         div = soup.find('div', class_='Box-sc-g0xbh4-0 ehcSsh')
 
         if div:
             table = div.find('table')
             if table:
-                rows = table.find_all('tr')[1:]
+                rows = table.find_all('tr')[1:]  # Skip the header
                 rows_data = []
                 seen_companies_locations = {}
 
@@ -52,6 +56,7 @@ def get_Data(keywords):
                         if re.search(r'\d', location):
                             location = 'multiple locations'
 
+                        # Avoid duplicates
                         if (company in seen_companies_locations and
                                 seen_companies_locations[company] == location):
                             continue
@@ -68,15 +73,32 @@ def get_Data(keywords):
                         rows_data.append(row_data)
 
                 df = pd.DataFrame(rows_data)
+
+                if not df.empty:
+                    print(f"Initial DataFrame: {df.head()}")  # Check the first few rows of the DataFrame
+
+                # Filter the DataFrame based on keywords for the role
+                if keywords:
+                    for keyword in keywords:
+                        df = df[df['Role'].str.contains(keyword, case=False, na=False)]
+                        print(f"Filtered DataFrame with keyword '{keyword}': {df.head()}")  # Print after filtering
+
+                if filter_keywords:
+                    for keyword in filter_keywords:
+                        df = df[df['Company'].str.contains(keyword, case=False, na=False)]
+                        print(f"Filtered DataFrame with company keyword '{keyword}': {df.head()}")
+
                 return df
             else:
-                logging.warning('No table found')
+                print('No table found')
         else:
-            logging.warning('No div with the specified class found')
+            print('No div with the specified class found')
     except Exception as e:
-        logging.error(f'An error occurred: {e}')
+        print(f'An error occurred: {e}')
 
     return pd.DataFrame()
+
+
 
 def format_job_data(row):
     return (f"**Company:** ***__{row['Company']}__***\n"
@@ -87,15 +109,16 @@ def format_job_data(row):
 
 def get_Swe():
     job_keywords = ['Software Engineer', 'Software Developer']
-    return get_Data(job_keywords)
+    return get_Data(keywords=job_keywords)
 
 def get_FullStack():
-    job_keywords = ['Full Stack','Full-Stack' 'Front End', 'Back end' , 'Backend' ,'Frontend' ,'Front-end' ,'Back-end']
-    return get_Data(job_keywords)
+    job_keywords = ['Full Stack', 'Full-Stack', 'Front End', 'Back end', 'Backend', 'Frontend', 'Front-end', 'Back-end']
+    return get_Data(keywords=job_keywords)
 
 def get_It():
-    job_keywords = ['Cloud', 'DevOps', 'IT', 'Cyber', 'Risk', 'Support', 'Administrator', 'Cybersecurity' 'Analyst']
-    return get_Data(job_keywords)
+    job_keywords = ['Cloud', 'DevOps', 'IT', 'Cyber', 'Risk', 'Support', 'Administrator', 'Cybersecurity', 'Analyst']
+    return get_Data(keywords=job_keywords)
+
 
 async def text_length(ctx, response):
     if len(response) > 2000:  # Discord message limit is 2000 characters
@@ -226,14 +249,64 @@ async def fetch_recent_jobs(ctx):
 async def fetch_commands(ctx):
     commands_list = (
         "**Available Commands:**\n\n" 
+        "`?company [company_name] [role]` - Get the x company with y role.\n"
+        "`?recent` - Get jobs posted in the last 48 hours.\n"
         "`?jobs [num_jobs]` - Get a list of the most recent jobs (default: 5).\n"
         "`?swe [num_jobs]` - Get a list of most recent Software Engineering Internships (default: 5).\n"
         "`?fullstack [num_jobs]` - Get a list of most recent Full Stack, Backend, and Front End Internships (default: 5).\n"
         "`?it [num_jobs]` - Get a list of most recent IT-related Internships (default: 5).\n"
+        "`?recent` - Get jobs posted in the last 48 hours.\n"
         "`?src` - Get the source code URL.\n"
         "`?git` - Get the GitHub source code URL.\n"
-        "`?recent` - Get jobs posted in the last 48 hours.\n"
     )
     await ctx.send(commands_list)
+
+def search_company_by_index(company_name, role_keyword=None):
+    ROLE_MAPPINGS = {
+        'swe': 'Software Engineer',
+        'sde' : 'Software Developer',
+        'fullstack': 'Full Stack Developer',
+        'frontend': 'Frontend Developer',
+        'backend': 'Backend Developer',
+        'it': 'IT Specialist',
+        'sysadmin': 'System Administrator',
+        # Add more mappings as needed
+    }
+
+    # Replace role_keyword with the full role name using the ROLE_MAPPINGS dictionary
+    if role_keyword:
+        role_keyword = role_keyword.lower()
+        full_role_name = ROLE_MAPPINGS.get(role_keyword, role_keyword)
+    else:
+        full_role_name = None
+
+    # Call get_Data with both company name and role keyword filters
+    df = get_Data(keywords=[full_role_name] if full_role_name else [], filter_keywords=[company_name])
+    
+    if df is None or df.empty:
+        return "They Aint Drop Yet Bruh. Wait Up"
+
+    # Format and return the results
+    response = ""
+    for _, row in df.iterrows():
+        role = row['Role'].lower()
+        if full_role_name and full_role_name.lower() not in role:
+            continue
+        response += format_job_data(row)
+
+    if not response:
+        return f"No job postings found for '{company_name}' with the role keyword '{role_keyword}'."
+    
+    return response
+
+
+
+
+@client.command(name='company')
+async def search_company(ctx, company_name: str, *, role_keyword: str = None):
+    result = search_company_by_index(company_name, role_keyword)
+    await ctx.send(result)
+
+
 
 client.run('TOKEN')
