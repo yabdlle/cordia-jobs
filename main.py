@@ -272,7 +272,6 @@ def search_company_by_index(company_name, role_keyword=None):
         'backend': 'Backend Developer',
         'it': 'IT Specialist',
         'sysadmin': 'System Administrator',
-        # Add more mappings as needed
     }
 
     # Replace role_keyword with the full role name using the ROLE_MAPPINGS dictionary
@@ -282,7 +281,6 @@ def search_company_by_index(company_name, role_keyword=None):
     else:
         full_role_name = None
 
-    # Call get_Data with both company name and role keyword filters
     df = get_Data(keywords=[full_role_name] if full_role_name else [], filter_keywords=[company_name])
     
     if df is None or df.empty:
