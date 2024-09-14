@@ -116,7 +116,7 @@ def get_FullStack():
     return get_Data(keywords=job_keywords)
 
 def get_It():
-    job_keywords = ['Cloud', 'DevOps', 'IT', 'Cyber', 'Risk', 'Support', 'Administrator', 'Cybersecurity', 'Analyst', 'Business']
+    job_keywords = ['Cloud', 'DevOps', 'IT', 'Cyber', 'Risk', 'Support', 'Administrator', 'Cybersecurity', 'Analyst', 'Business' 'Information Technology']
     return get_Data(keywords=job_keywords)
 
 
