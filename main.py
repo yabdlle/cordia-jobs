@@ -288,32 +288,32 @@ def search_company_by_index(companies, role_keyword=None):
         'Embed': 'Embedded Engineer'
     }
 
-    # Replace role_keyword with the full role name using the ROLE_MAPPINGS dictionary
+  
     if role_keyword:
         role_keyword = role_keyword.lower()
         full_role_name = ROLE_MAPPINGS.get(role_keyword, role_keyword)
     else:
         full_role_name = None
 
-    # Convert comma-separated company names into a list
+  
     company_list = [company.strip() for company in companies.split(',')]
     
-    print(f"Company list: {company_list}")  # Debugging: Print the list of companies
-    print(f"Role keyword: {full_role_name}")  # Debugging: Print the role keyword
+    print(f"Company list: {company_list}")  
+    print(f"Role keyword: {full_role_name}")  
 
-    # Fetch data using the get_Data function
+    #
     df = get_Data(keywords=[full_role_name] if full_role_name else [], filter_keywords=company_list)
     
-    # Debugging: Print the fetched dataframe
+
     if df is not None and not df.empty:
-        print(f"Fetched DataFrame:\n{df.head()}")  # Print first few rows of the dataframe
+        print(f"Fetched DataFrame:\n{df.head()}")  
     else:
         print("No data fetched or DataFrame is empty.")
 
     if df is None or df.empty:
         return "No job postings found. Please check the company names and roles."
 
-    # Format and return the results
+  
     response = ""
     for _, row in df.iterrows():
         role = row['Role'].lower()
