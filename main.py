@@ -274,19 +274,18 @@ async def fetch_commands(ctx):
     await ctx.send(commands_list)
 
 
-def search_company_by_index(company_name, role_keyword=None):
+def search_company_by_index(companies, role_keyword=None):
     ROLE_MAPPINGS = {
         'swe': 'Software Engineer',
-        'sde' : 'Software Developer',
+        'sde': 'Software Developer',
         'fullstack': 'Full Stack Developer',
         'frontend': 'Frontend Developer',
         'backend': 'Backend Developer',
         'it': 'IT Specialist',
         'sysadmin': 'System Administrator',
         'ML': 'Machine Learning Engineer',
-        'AI' : 'AI Engineer',
-        'Embed' : 'Embedded Engineer'
-
+        'AI': 'AI Engineer',
+        'Embed': 'Embedded Engineer'
     }
 
     # Replace role_keyword with the full role name using the ROLE_MAPPINGS dictionary
@@ -296,10 +295,23 @@ def search_company_by_index(company_name, role_keyword=None):
     else:
         full_role_name = None
 
-    df = get_Data(keywords=[full_role_name] if full_role_name else [], filter_keywords=[company_name])
+    # Convert comma-separated company names into a list
+    company_list = [company.strip() for company in companies.split(',')]
     
+    print(f"Company list: {company_list}")  # Debugging: Print the list of companies
+    print(f"Role keyword: {full_role_name}")  # Debugging: Print the role keyword
+
+    # Fetch data using the get_Data function
+    df = get_Data(keywords=[full_role_name] if full_role_name else [], filter_keywords=company_list)
+    
+    # Debugging: Print the fetched dataframe
+    if df is not None and not df.empty:
+        print(f"Fetched DataFrame:\n{df.head()}")  # Print first few rows of the dataframe
+    else:
+        print("No data fetched or DataFrame is empty.")
+
     if df is None or df.empty:
-        return "They Aint Drop Yet Bruh. Wait Up"
+        return "No job postings found. Please check the company names and roles."
 
     # Format and return the results
     response = ""
@@ -310,17 +322,15 @@ def search_company_by_index(company_name, role_keyword=None):
         response += format_job_data(row)
 
     if not response:
-        return f"No job postings found for '{company_name}' with the role keyword '{role_keyword}'."
+        return f"No job postings found for companies '{', '.join(company_list)}' with the role keyword '{role_keyword}'."
     
     return response
 
-
-
-
 @client.command(name='company')
-async def search_company(ctx, company_name: str, *, role_keyword: str = None):
-    result = search_company_by_index(company_name, role_keyword)
+async def search_company(ctx, companies: str, *, role_keyword: str = None):
+    result = search_company_by_index(companies, role_keyword)
     await ctx.send(result)
+
 
 
 
