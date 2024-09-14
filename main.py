@@ -335,17 +335,41 @@ async def search_company(ctx, companies: str, *, role_keyword: str = None):
 
 
 @client.command(name='random')
-async def random_job(ctx, num_jobs: int = 3):
-    df = get_Data([])
+async def random_job(ctx, num_jobs: int = 5):
+    df = get_Data([])  
     if df is None or df.empty:
         await ctx.send("No jobs available.")
         return
 
 
-    num_jobs = min(max(1, num_jobs), len(df))
-    
- 
-    random_rows = df.sample(n=num_jobs)
+    now = datetime.now(pytz.utc)
+
+
+    start_of_week = now - timedelta(days=now.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+
+    recent_jobs = []
+    for index, row in df.iterrows():
+        date_posted_str = row['Date Posted']
+        try:
+         
+            date_posted = datetime.strptime(f"{datetime.now().year} {date_posted_str}", '%Y %b %d').replace(tzinfo=pytz.utc)
+
+            # Check if the date is within the current week
+            if start_of_week <= date_posted <= end_of_week:
+                recent_jobs.append(row)
+        except ValueError:
+            continue
+
+    if not recent_jobs:
+        await ctx.send("No job postings found from the current week.")
+        return
+
+    # Select a random sample of jobs
+    num_jobs = min(max(1, num_jobs), len(recent_jobs))
+    random_rows = pd.DataFrame(recent_jobs).sample(n=num_jobs)
+
+    # Format and send the response
     response = ""
     for _, row in random_rows.iterrows():
         response += format_job_data(row)
