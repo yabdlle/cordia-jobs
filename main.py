@@ -197,60 +197,70 @@ async def fetch_git(ctx):
     await ctx.send('Git Source is here: https://github.com/yabdlle/job-bot/blob/main/main.py')
 
 @client.command(name='recent')
-async def fetch_recent_jobs(ctx):
-    df = get_Data([])
-    if df is None or df.empty:
-        await ctx.send("No data available.")
-        return
-
+async def fetch_recent_jobs(ctx, role_keyword: str = None, num_jobs: int = 5):
     now = datetime.now(pytz.utc)
     current_year = 2024
     recent_jobs = []
 
-    print(f"Current time (UTC): {now}")
+    ROLE_MAPPINGS = {
+        'swe': ['Software Engineer'],
+        'sde': ['Software Developer'],
+        'fullstack': ['Full Stack Developer'],
+        'frontend': ['Frontend Developer'],
+        'backend': ['Backend Developer'],
+        'it': ['IT Specialist'],
+        'sysadmin': ['System Administrator'],
+        'ML': ['Machine Learning Engineer'],
+        'AI': ['AI Engineer'],
+        'Embed': ['Embedded Engineer']
+    }
+    
+    if role_keyword:
+        role_keyword = role_keyword.lower()
+        full_role_names = ROLE_MAPPINGS.get(role_keyword, [role_keyword])
+    else:
+        full_role_names = []
+
+    df = get_Data(keywords=full_role_names)
+
+    if df is None or df.empty:
+        await ctx.send("No data available.")
+        return
 
     for index, row in df.iterrows():
         date_posted_str = row['Date Posted']
-        print(f"Processing date: {date_posted_str}")
-        
         try:
-            # Construct date string with the current year
             date_posted_str_with_year = f"{current_year} {date_posted_str}"
             date_posted = datetime.strptime(date_posted_str_with_year, '%Y %b %d').replace(tzinfo=pytz.utc)
-            
-            print(f"Parsed date (UTC): {date_posted}")
-            
-            # Calculate time difference in seconds
             time_difference = (now - date_posted).total_seconds()
-            print(f"Time difference: {time_difference} seconds")
 
-            if time_difference <= 172800:  # 48 hours
+            if time_difference <= 172800:
                 recent_jobs.append(row)
         except ValueError:
-            print(f"Date parsing error: {date_posted_str}")
             continue
 
-    # Print and send the number of jobs within the last 48 hours
-    job_count_message = f"Number of jobs within the last 48 hours: {len(recent_jobs)}"
-    print(job_count_message)
+    job_count_message = f"Number of jobs within the last 48 hours for roles {', '.join(full_role_names)}: {len(recent_jobs)}"
     await ctx.send(job_count_message)
 
     if not recent_jobs:
-        await ctx.send("No jobs found in the last 48 hours.")
+        await ctx.send(f"No recent jobs found for roles: {', '.join(full_role_names)}.")
         return
 
     response = ""
-    for row in recent_jobs:  
+    for row in recent_jobs[:num_jobs]:
         response += format_job_data(row)
 
     await text_length(ctx, response)
+
+
+
 
 @client.command(name='commands')
 async def fetch_commands(ctx):
     commands_list = (
         "**Available Commands:**\n\n"
         "`?company [company_name] [role]` - Get job postings for the specified company and role (if exists).\n"
-        "`?recent` - Get jobs posted in the last 48 hours.\n"
+        "`?recent [role] [num_jobs]` - Get a list of the most recent jobs for a specified role (default: 5).\n"
         "`?jobs [num_jobs]` - Get a list of the most recent jobs (default: 5).\n"
         "`?swe [num_jobs]` - Get a list of the most recent Software Engineering Internships (default: 5).\n"
         "`?fullstack [num_jobs]` - Get a list of the most recent Full Stack, Backend, and Front End Internships (default: 5).\n"
@@ -262,6 +272,7 @@ async def fetch_commands(ctx):
         "`?git` - Get the Github code of the bot.\n"
     )
     await ctx.send(commands_list)
+
 
 def search_company_by_index(company_name, role_keyword=None):
     ROLE_MAPPINGS = {
