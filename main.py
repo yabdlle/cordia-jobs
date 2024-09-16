@@ -27,7 +27,6 @@ def get_Data(keywords, filter_keywords=None):
 
     try:
         response = requests.get(url).text
-        print(f"Fetched HTML: {response[:500]}")  # Print the first 500 characters of the HTML to debug
         soup = BeautifulSoup(response, 'lxml')
         div = soup.find('div', class_='Box-sc-g0xbh4-0 ehcSsh')
 
