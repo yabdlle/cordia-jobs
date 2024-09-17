@@ -27,6 +27,7 @@ def get_Data(keywords, filter_keywords=None):
 
     try:
         response = requests.get(url).text
+        print(f"Fetched HTML: {response[:500]}")  # Print the first 500 characters of the HTML to debug
         soup = BeautifulSoup(response, 'lxml')
         div = soup.find('div', class_='Box-sc-g0xbh4-0 ehcSsh')
 
@@ -41,11 +42,18 @@ def get_Data(keywords, filter_keywords=None):
                     columns = row.find_all('td')
                     if len(columns) > 0:
                         company = columns[0].text.strip()
-                        role = columns[1].text.strip() if len(columns) > 1 else 'N/A'
-                        location = columns[2].text.strip() if len(columns) > 2 else 'N/A'
-                        link = columns[3].find('a')['href'].strip() if len(columns) > 3 and columns[3].find('a') else 'N/A'
-                        date_posted = columns[4].text.strip() if len(columns) > 4 else 'N/A'
+                        role = columns[1].text.strip() if len(columns) > 1 else None
+                        location = columns[2].text.strip() if len(columns) > 2 else None
+                        link = columns[3].find('a')['href'].strip() if len(columns) > 3 and columns[3].find('a') else None
+                        date_posted = columns[4].text.strip() if len(columns) > 4 else None
 
+                        if not company or not role or not location or not link:
+                            continue
+                        # App is Closed
+                        if '🔒' in link:
+                            continue
+
+                        # Multiple Locations
                         if company == '↳':
                             continue
 
@@ -80,14 +88,14 @@ def get_Data(keywords, filter_keywords=None):
                 if keywords:
                     for keyword in keywords:
                         df = df[df['Role'].str.contains(keyword, case=False, na=False)]
-                        print(f"Filtered DataFrame with keyword '{keyword}': {df.head()}")  # Print after filtering
+                        print(f"Filtered DataFrame with keyword '{keyword}': {df.head()}")  
 
                 if filter_keywords:
                     for keyword in filter_keywords:
                         df = df[df['Company'].str.contains(keyword, case=False, na=False)]
                         print(f"Filtered DataFrame with company keyword '{keyword}': {df.head()}")
 
-                return df
+                return df if not df.empty else pd.DataFrame() 
             else:
                 print('No table found')
         else:
@@ -95,8 +103,7 @@ def get_Data(keywords, filter_keywords=None):
     except Exception as e:
         print(f'An error occurred: {e}')
 
-    return pd.DataFrame()
-
+    return pd.DataFrame()  
 
 
 def format_job_data(row):
@@ -287,32 +294,25 @@ def search_company_by_index(companies, role_keyword=None):
         'Embed': 'Embedded Engineer'
     }
 
-  
     if role_keyword:
         role_keyword = role_keyword.lower()
         full_role_name = ROLE_MAPPINGS.get(role_keyword, role_keyword)
     else:
         full_role_name = None
 
-  
     company_list = [company.strip() for company in companies.split(',')]
-    
+
     print(f"Company list: {company_list}")  
     print(f"Role keyword: {full_role_name}")  
 
-    #
     df = get_Data(keywords=[full_role_name] if full_role_name else [], filter_keywords=company_list)
-    
 
     if df is not None and not df.empty:
         print(f"Fetched DataFrame:\n{df.head()}")  
     else:
         print("No data fetched or DataFrame is empty.")
+        return "No job postings found, App may be closed"
 
-    if df is None or df.empty:
-        return "No job postings found. Please check the company names and roles."
-
-  
     response = ""
     for _, row in df.iterrows():
         role = row['Role'].lower()
