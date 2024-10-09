@@ -7,7 +7,7 @@ import re
 import logging
 from datetime import datetime, timedelta
 import pytz
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 
 logging.basicConfig(filename='internship_data.log',
@@ -28,7 +28,6 @@ def get_Data(keywords, filter_keywords=None):
 
     try:
         response = requests.get(url).text
-        print(f"Fetched HTML: {response[:500]}")  # Print the first 500 characters of the HTML to debug
         soup = BeautifulSoup(response, 'lxml')
         div = soup.find('div', class_='Box-sc-g0xbh4-0 csrIcr')
 
@@ -452,3 +451,41 @@ async def search_remote(ctx, num_jobs: int = 5):
         response += format_job_data(row)
 
     await text_length(ctx, response)
+@tasks.loop(minutes=1)
+async def check_for_new_jobs(channel, role_keyword: str = None, num_jobs: int = 5):
+    recent_jobs = await fetch_recent_jobs(role_keyword, num_jobs)
+
+    if not recent_jobs:
+        return  # No new jobs, do nothing
+
+    response = ""
+    for row in recent_jobs:
+        response += format_job_data(row)  # Format job data as required
+
+    await text_length(channel, response)  # Send the response to the channel
+
+# Command to start the job-checking loop
+@client.command(name='start_job_check')
+async def start_job_check(ctx, role_keyword: str = None, num_jobs: int = 5):
+    if not check_for_new_jobs.is_running():
+        await ctx.send(f"Starting the job-check loop for '{role_keyword}'.")
+        check_for_new_jobs.start(ctx.channel, role_keyword, num_jobs)
+    else:
+        await ctx.send("Job-check loop is already running!")
+
+# Command to stop the job-checking loop
+@client.command(name='stop_job_check')
+async def stop_job_check(ctx):
+    if check_for_new_jobs.is_running():
+        check_for_new_jobs.stop()
+        await ctx.send("Stopped the job-check loop.")
+    else:
+        await ctx.send("Job-check loop isn't running.")
+
+# Function to send long messages with text length handling
+async def text_length(ctx, response):
+    if len(response) > 2000:
+        for i in range(0, len(response), 2000):
+            await ctx.send(response[i:i + 2000])
+    else:
+        await ctx.send(response)
