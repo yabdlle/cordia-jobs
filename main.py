@@ -18,7 +18,8 @@ logging.basicConfig(filename='internship_data.log',
 intents = discord.Intents.default()
 intents.message_content = True  
 client = commands.Bot(command_prefix='?', intents=intents)
-url = "https://github.com/Ouckah/Summer2025-Internships"
+url = "https://github.com/cvrve/Summer2025-Internships"
+
 
 
 def get_Data(keywords, filter_keywords=None):
@@ -29,7 +30,7 @@ def get_Data(keywords, filter_keywords=None):
         response = requests.get(url).text
         print(f"Fetched HTML: {response[:500]}")  # Print the first 500 characters of the HTML to debug
         soup = BeautifulSoup(response, 'lxml')
-        div = soup.find('div', class_='Box-sc-g0xbh4-0 ehcSsh')
+        div = soup.find('div', class_='Box-sc-g0xbh4-0 csrIcr')
 
         if div:
             table = div.find('table')
@@ -196,7 +197,7 @@ async def fetch_it(ctx, num_jobs: int = 5):
 
 @client.command(name='src')
 async def fetch_src(ctx):
-    await ctx.send('Check out the source code here: https://github.com/Ouckah/Summer2025-Internships')
+    await ctx.send('Check out the source code here: https://github.com/cvrve/Summer2025-Internships')
 
 @client.command(name='git')
 async def fetch_git(ctx):
@@ -451,6 +452,3 @@ async def search_remote(ctx, num_jobs: int = 5):
         response += format_job_data(row)
 
     await text_length(ctx, response)
-
-
-client.run('TOKEN')
