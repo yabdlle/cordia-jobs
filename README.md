@@ -1,5 +1,5 @@
 # Cordia Jobs
-Welcome to the Cordia-Jobs Bot, an innovative tool designed to streamline your job search by integrating real-time job data scraping with Discord notifications. This bot efficiently scrapes internship postings from a specified URL, providing users with instant updates and interactive commands such as ?jobs, ?swe, ?fullstack, ?it, and ?company to explore job opportunities.
+The Cordia-Jobs Bot is a tool designed to simplify your job search by bringing real-time job data scraping and Discord notifications together. It scrapes internship postings from a specified URL, keeping you updated with instant alerts. Use interactive commands like ?jobs, ?swe, ?fullstack, ?it, and ?company to discover new job opportunities.
 
 Key Features:
 ?jobs: Fetch a list of recent job postings.
