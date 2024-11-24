@@ -9,4 +9,4 @@ Key Features:
 ?company: Search for job postings from a specific company, with optional role filtering (e.g., ?company Netflix SWE).
 The bot also features a ?recent command to highlight jobs posted in the last 48 hours and a ?commands command for a comprehensive list of available functionalities. With periodic updates every minute, the bot ensures you never miss out on new opportunities.
 
-To get started, clone the repository, install dependencies, set up your Discord token in a .env file, and run the bot. For detailed information on commands, setup, and contribution, refer to the source code and documentation. 
+To get started, clone the repository, install dependencies, set up your Discord token in a .env file, and run the bot. 
